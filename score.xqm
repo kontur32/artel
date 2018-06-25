@@ -7,7 +7,7 @@ declare function score:table ($board)
   let $second := score:second($board)
   let $self_score := 
     for $i in $data
-    return $i/child::*[@имя/data()=$i/child::*[@имя/data() = "ФИО"]]/data()
+    return $i/child::*[@имя/data()=$i/@person/data()]/data()
   let $diff := 
     for $i in 1 to count($second)
     return round ($second[$i] - $self_score[$i], 2)
@@ -40,7 +40,7 @@ declare function score:table ($board)
       return
         
           <tr align="center">
-            <td align="left">{$data[$i]/child::*[@имя/data()="ФИО"]/text()}</td>
+            <td align="left">{$data[$i]/@person/data()}</td>
             <td >{$first[$i]}</td>
             <td>{$second[$i]}</td>
             <td>{$self_score[$i]}</td>
@@ -82,7 +82,7 @@ declare function score:second($data)
 {
   let $score :=
     for $i in $data/members/member/text()
-    return sum($data/values[row[@имя="ФИО"] != $i]/row[@имя=$i]/data())
+    return sum($data/values[@person != $i]/row[@имя=$i]/data())
 
   let $summ := sum($score)
   

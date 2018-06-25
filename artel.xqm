@@ -24,7 +24,7 @@ declare %updating function artel:members-to-db ($members, $master) as empty-sequ
     insert node 
         for $i in $members/member/text()
         return 
-            <values>
+            <values person="{$i}">
               <row имя="ФИО">{$i}</row>
             </values>
         into db:open($artel:db-name)/main/board[@master/data()=$master]
@@ -72,14 +72,14 @@ declare
 function artel:input-values ()
 { 
   let $values :=
-    <values>
+    <values person="{request:parameter('ФИО')}">
     {
-      for $a in request:parameter-names()[data() != "common"]
+      for $a in request:parameter-names()[data() != ("common", "ФИО")]
       return <row имя="{$a}">{request:parameter($a)}</row>
     }
     </values>
   return
-    replace node db:open($artel:db-name)/main/board[@common=request:parameter("common")]/values[row[@имя="ФИО"]/text()=request:parameter("ФИО")] with $values,
+    replace node db:open($artel:db-name)/main/board[@common=request:parameter("common")]/values[@person/data()=request:parameter("ФИО")] with $values,
     
     let $message := "Товарищ " || request:parameter("ФИО") || ", Ваши оценки успешно записаны"
     return
@@ -96,7 +96,6 @@ declare
   %output:omit-xml-declaration("no")
 function artel:edit-board($master, $common, $message)
 {
- 
   let $common := db:open($artel:db-name)/main/board[@master/data()=$master]/@common/data()
   let $href_master := "list?" || 'master=' || $master 
   let $href_common := "input?" || 'common=' || $common
@@ -140,7 +139,6 @@ function artel:input-common($common, $message)
   let $href_result := $artel:url || "artel/result?" || 'common=' || $common
   return
   <html>
-    
     <body>
       <h1>артель.ру</h1>
       <p><i>{$message}</i></p>
