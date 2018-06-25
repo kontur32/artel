@@ -5,7 +5,7 @@ import module namespace request = "http://exquery.org/ns/request";
 
 
 declare variable $artel:db-name := 'artel';
-declare variable $artel:url := 'http://localhost:8984/';
+declare variable $artel:url :=  db:open('artel')/config/host/text();
 
 declare %updating function artel:new-board($hash) as empty-sequence ()
 {
