@@ -1,4 +1,4 @@
-module namespace score = "artel2018";
+module namespace score = "http://karlowka.de/score";
 
 declare function score:table ($board)
 {

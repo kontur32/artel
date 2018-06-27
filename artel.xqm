@@ -1,6 +1,6 @@
-module namespace artel = "karlowka";
+module namespace artel = "http://karlowka.de/artel";
 import module namespace functx = "http://www.functx.com";
-import module namespace score ='artel2018' at "score.xqm";
+import module namespace score ='http://karlowka.de/score' at "score.xqm";
 import module namespace request = "http://exquery.org/ns/request";
 
 
