@@ -25,6 +25,7 @@ declare function score:table ($board)
     return round ($second_2[$i] div sum($second_2) * 100, 1)
   return 
     <html>
+    <h1>360+ градусов</h1>
     <table border="2px">
       <tr align="center" >
         <td>Участник</td>
@@ -119,6 +120,7 @@ declare function score:table-full ($board)
     return round ($second_2[$i] div sum($second_2) * 100, 1)
   return 
     <html>
+    <h1>360+ градусов</h1>
     <table border="2px">
       <tr align="center" >
         <td>Участник</td>
