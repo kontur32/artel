@@ -103,7 +103,7 @@ function artel:edit-board($master, $common, $message)
   return
   <html>
     <body>
-      <h1>общее дело</h1>
+      <h1>360+ градусов</h1>
       <p><i>{$message}</i></p>
       <p><a href= "{$href_master }">Ссылка для ввода списка участников</a> (сохраните её на всякий случай)</p>
       <a href= "{$href_common }">Ссылка для ввода участником оценок</a>
@@ -140,7 +140,7 @@ function artel:input-common($common, $message)
   return
   <html>
     <body>
-      <h1>общее дело</h1>
+      <h1>360+ градусов</h1>
       <p><i>{$message}</i></p>
       <p>Это форма для ввода ваших оценок</p>
       <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
@@ -189,7 +189,7 @@ function artel:artel()
 {
   <html>
 	<body>
-		<h1>общее дело</h1>
+		<h1>360+ градусов</h1>
 		<p>Для регистрации новой панели нажмите ... </p>
 		<form enctype="multipart/form-data" action = "{$artel:url || 'artel/new-board'}" method="get">
 			<input type="submit" value = "создать"/>
