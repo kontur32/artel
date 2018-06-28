@@ -24,9 +24,7 @@ declare %updating function artel:members-to-db ($members, $master) as empty-sequ
     insert node 
         for $i in $members/member/text()
         return 
-            <values person="{$i}">
-              <row имя="ФИО">{$i}</row>
-            </values>
+            <values person="{$i}"/>
         into db:open($artel:db-name)/main/board[@master/data()=$master]
 };
 
@@ -52,6 +50,7 @@ function artel:input-members ($members, $master)
   artel:members-to-db (
     <members>{
       for $i in tokenize($members, ",")
+      order by $i
       return 
         <member>{normalize-space($i)}</member>}
     </members>,
@@ -74,7 +73,8 @@ function artel:input-values ()
   let $values :=
     <values person="{request:parameter('ФИО')}">
     {
-      for $a in request:parameter-names()[data() != ("common", "ФИО")]
+      for $a in request:parameter-names()[(data() != "common") and (data() != "ФИО")]
+      order by $a
       return <row имя="{$a}">{request:parameter($a)}</row>
     }
     </values>
@@ -83,7 +83,7 @@ function artel:input-values ()
     
     let $message := "Товарищ " || request:parameter("ФИО") || ", Ваши оценки успешно записаны"
     return
-      db:output(web:redirect($artel:url || 'artel/result', map { "common":request:parameter("common"), "message":$message}))
+      db:output(web:redirect($artel:url || 'artel/input', map { "common":request:parameter("common"), "message":$message}))
 };
 
 declare
@@ -103,11 +103,11 @@ function artel:edit-board($master, $common, $message)
   return
   <html>
     <body>
-      <h1>артель.ру</h1>
+      <h1>общее дело</h1>
       <p><i>{$message}</i></p>
       <p><a href= "{$href_master }">Ссылка для ввода списка участников</a> (сохраните её на всякий случай)</p>
-      <p><a href= "{$href_common }">Ссылка для ввода участником оценок</a></p>
-      <p><a href= "{$href_result }">Ссылка для просмотра результатов</a></p>
+      <a href= "{$href_common }">Ссылка для ввода участником оценок</a>
+      <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
       <form enctype="multipart/form-data" action = 'members' method="get">
         <p>Укажите участников (через запятую):</p>
         <p><textarea name="members"></textarea></p>
@@ -140,10 +140,10 @@ function artel:input-common($common, $message)
   return
   <html>
     <body>
-      <h1>артель.ру</h1>
+      <h1>общее дело</h1>
       <p><i>{$message}</i></p>
       <p>Это форма для ввода ваших оценок</p>
-      <p><a href= "{$href_result }">Ссылка для просмотра результатов</a></p>
+      <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
       <p>Оцените вклад участника (в %):</p>
       <form enctype="multipart/form-data" action = "{$artel:url || 'artel/input/values'}" method="get">
         <table>
@@ -189,7 +189,7 @@ function artel:artel()
 {
   <html>
 	<body>
-		<h1>артель.ру</h1>
+		<h1>общее дело</h1>
 		<p>Для регистрации новой панели нажмите ... </p>
 		<form enctype="multipart/form-data" action = "{$artel:url || 'artel/new-board'}" method="get">
 			<input type="submit" value = "создать"/>

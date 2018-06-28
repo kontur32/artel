@@ -1,4 +1,5 @@
 module namespace score = "http://karlowka.de/score";
+declare variable $score:db-name := 'artel';
 
 declare function score:table ($board)
 {
@@ -88,4 +89,17 @@ declare function score:second($data)
   
   for $i in $score
   return round (($i div $summ)*100, 1) 
+};
+
+declare function score:complete ($common as xs:string) as xs:integer
+{
+   count(db:open($score:db-name)/main/board[@common=$common]/values[row])
+};
+
+declare function score:is-complete ($common as xs:string)
+{
+   let $data := db:open($score:db-name)/main/board[@common=$common]
+   let $members-count := count($data//member[text()])
+   let $values-count := count($data//values[count(row) > 0])
+   return if (  $values-count >= $members-count and  $members-count !=0) then (true()) else (false())
 };
