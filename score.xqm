@@ -1,62 +1,75 @@
 module namespace score = "http://karlowka.de/score";
-declare variable $score:db-name := 'artel';
+declare variable $score:db-name := 'artel' ;
+declare variable $score:indicators := 
+                                      map{
+                                        "persons": "Участник", 
+                                        "first": "Общая оценка", 
+                                        "second": "Внешняя оценка", 
+                                        "self_evaluation": "Самооценка", 
+                                        "diff": "Пере-(недо-)оценка", 
+                                        "penalty": "'Штраф' за пере-(недо-)оценку", 
+                                        "penalty_index": "Коэфф. 'штрафа'", 
+                                        "second_2": "Оценка коррект.", 
+                                        "final_evaluation": "Итоговая оценка в %"
+                                      };
 
-declare function score:table ($board)
+declare function score:result($board as node()) 
 {
   let $data := $board//values
   let $first := score:first($board)
   let $second := score:second($board)
-  let $self_score := 
+  let $self_evaluation := 
     for $i in $data
-    return $i/child::*[@имя/data()=$i/@person/data()]/data()
+    return number($i/child::*[@имя/data()=$i/@person/data()]/data())
   let $diff := 
     for $i in 1 to count($second)
-    return round ($second[$i] - $self_score[$i], 2)
+    return round ($second[$i] - $self_evaluation[$i], 2)
   let $diff_2 :=
     for $i in 1 to count($diff)
     return if ($diff[$i]<0) then (abs($diff[$i])*2) else ($diff[$i])
   let $diff_summ := sum($diff_2)
-  
+  let $penalty_index :=
+    for $i in 1 to count ($second)
+    return round ((1- $diff_2[$i] div $diff_summ), 2)
   let $second_2 := 
     for $i in 1 to count ($second)
-    return $second[$i]*(1- round ($diff_2[$i] div $diff_summ, 2))
+    return round ($second[$i]*$penalty_index[$i], 1)
   let $second_final := 
     for $i in 1 to count ($second_2)
     return round ($second_2[$i] div sum($second_2) * 100, 1)
   return 
-    <html>
-    <h1>360+ градусов</h1>
-    <table border="2px">
-      <tr align="center" >
-        <td>Участник</td>
-        <td>Внешняя оценка</td>
-        <td>Самооценка</td>
-        <td>Пере-(недо-)оценка</td>
-        <td>"Штраф" за пере-(недо-)оценку</td>
-        <td>Итоговая оценка в %</td>
-      </tr>
-      {for $i in 1 to count($data)
-      return
-        
-          <tr align="center">
-            <td align="left">{$data[$i]/@person/data()}</td>
-            <td>{$second[$i]}</td>
-            <td>{$self_score[$i]}</td>
-            <td>{$diff[$i]}</td>
-            <td>{$diff_2[$i] }</td> 
-            <td>{round ($second_2[$i] div sum($second_2) * 100, 1)}</td>
-          </tr>
-        }
-         <tr align="center">
-            <td align="left">{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{sum($second_final)}</td>
-          </tr>  
-    </table>
-    </html>
+    map{
+      "persons" : $board//members/member/text(), 
+      "first" : $first, 
+      "second" : $second, 
+      "self_evaluation" : $self_evaluation, 
+      "diff" : $diff, 
+      "penalty" : $diff_2, 
+      "penalty_index" : $penalty_index,
+      "second_2": $second_2, 
+      "final_evaluation": $second_final
+    }
+};
+
+declare function score:final-table ($evaluations, $columns)
+{
+  <table border="2px">
+    <tr>
+      {
+        for $i in $columns
+        return <td>{map:get($score:indicators, $i)}</td>
+      }
+    </tr>
+    {
+      for $i in 1 to count(map:get($evaluations, $columns[1]))
+      return 
+          <tr>{
+            for $a in $columns
+            return
+              <td>{map:get($evaluations, $a)[$i]}</td>
+         }</tr>
+    }
+  </table>
 };
 
 declare function score:first($data)
@@ -94,71 +107,4 @@ declare function score:is-complete ($common as xs:string)
    let $members-count := count($data//member[text()])
    let $values-count := count($data//values[count(row) > 0])
    return if (  $values-count >= $members-count and  $members-count !=0) then (true()) else (false())
-};
-
-declare function score:table-full ($board)
-{
-  let $data := $board//values
-  let $first := score:first($board)
-  let $second := score:second($board)
-  let $self_score := 
-    for $i in $data
-    return $i/child::*[@имя/data()=$i/@person/data()]/data()
-  let $diff := 
-    for $i in 1 to count($second)
-    return round ($second[$i] - $self_score[$i], 2)
-  let $diff_2 :=
-    for $i in 1 to count($diff)
-    return if ($diff[$i]<0) then (abs($diff[$i])*2) else ($diff[$i])
-  let $diff_summ := sum($diff_2)
-  
-  let $second_2 := 
-    for $i in 1 to count ($second)
-    return $second[$i]*(1- round ($diff_2[$i] div $diff_summ, 2))
-  let $second_final := 
-    for $i in 1 to count ($second_2)
-    return round ($second_2[$i] div sum($second_2) * 100, 1)
-  return 
-    <html>
-    <h1>360+ градусов</h1>
-    <table border="2px">
-      <tr align="center" >
-        <td>Участник</td>
-        <td>Общая оценка</td>
-        <td>Внешняя оценка</td>
-        <td>Самооценка</td>
-        <td>Пере-(недо-)оценка</td>
-        <td>"Штраф" за пере-(недо-)оценку</td>
-        <td>Коэфф. "штрафа"</td>
-        <td>Оценка коррект.</td>
-        <td>Итоговая оценка в %</td>
-      </tr>
-      {for $i in 1 to count($data)
-      return
-        
-          <tr align="center">
-            <td align="left">{$data[$i]/@person/data()}</td>
-            <td >{$first[$i]}</td>
-            <td>{$second[$i]}</td>
-            <td>{$self_score[$i]}</td>
-            <td>{$diff[$i]}</td>
-            <td>{$diff_2[$i] }</td> 
-            <td>{round(1- round ($diff_2[$i] div $diff_summ, 2), 2)}</td>
-            <td>{ round ($second_2[$i], 1)}</td>
-            <td>{round ($second_2[$i] div sum($second_2) * 100, 1)}</td>
-          </tr>
-        }
-         <tr align="center">
-            <td align="left">{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td> 
-            <td>{}</td>
-            <td>{}</td>
-            <td>{sum($second_final)}</td>
-          </tr>  
-    </table>
-    </html>
 };
