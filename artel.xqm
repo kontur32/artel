@@ -6,6 +6,15 @@ import module namespace request = "http://exquery.org/ns/request";
 
 declare variable $artel:db-name := 'artel';
 declare variable $artel:url :=  db:open('artel')/config/host/text();
+declare variable $artel:head := 
+      <head>
+        <title>360+</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      </head>;
 
 declare %updating function artel:new-board($hash) as empty-sequence ()
 {
@@ -36,7 +45,7 @@ function artel:create-hash ()
 {
   let $hash := (random:uuid(), random:uuid()) 
   return               
-   artel:create-bord($hash)
+   artel:create-bord($hash, 'artel/master')
 };
 
 declare
@@ -44,8 +53,9 @@ declare
   %rest:path("/artel/members")
   %rest:query-param("members", "{$members}")
   %rest:query-param("master", "{$master}")
+  %rest:query-param("url-redirect", "{$url-redirect}", "artel/master")
   %rest:GET
-function artel:input-members ($members, $master) 
+function artel:input-members ($members, $master, $url-redirect) 
 {
   artel:members-to-db (
     <members>{
@@ -56,12 +66,12 @@ function artel:input-members ($members, $master)
     </members>,
     $master
   ),
-  db:output(web:redirect($artel:url || 'artel/list', map {"master": $master , "message":"Участники опроса успешно зарегистрированы"}))
+  db:output(web:redirect($artel:url || $url-redirect, map {"master": $master , "message":"Участники опроса успешно зарегистрированы"}))
 };
 
-declare %updating function artel:create-bord($hash)
+declare %updating function artel:create-bord($hash, $url-redirect)
 {            
- artel:new-board($hash),  db:output(web:redirect( $artel:url || 'artel/list', map {"master": $hash[1], "common":$hash[2], "message":"Новый опрос успешно создан"}))
+ artel:new-board($hash),  db:output(web:redirect( $artel:url || $url-redirect , map {"master": $hash[1], "common":$hash[2], "message":"Новый опрос успешно создан"}))
 };
 
 declare
@@ -87,42 +97,48 @@ function artel:input-values ()
 };
 
 declare
-  %rest:path("/artel/list")
+  %rest:path("/artel/master")
   %rest:GET
   %rest:query-param("master", "{$master}")
-  %rest:query-param("common", "{$common}")
   %rest:query-param("message", "{$message}")
   %output:method("xhtml")
   %output:omit-xml-declaration("no")
-function artel:edit-board($master, $common, $message)
+function artel:edit-board($master, $message)
 {
   let $common := db:open($artel:db-name)/main/board[@master/data()=$master]/@common/data()
-  let $href_master := "list?" || 'master=' || $master 
+  let $href_master := "master?" || 'master=' || request:parameter("master") 
   let $href_common := "input?" || 'common=' || $common
   let $href_result := "result?" || 'common=' || $common
   return
   <html>
+    {$artel:head}
     <body>
-      <h1>360+ градусов</h1>
-      <p><i>{$message}</i></p>
-      <p><a href= "{$href_master }">Ссылка для ввода списка участников</a> (сохраните её на всякий случай)</p>
-      <a href= "{$href_common }">Ссылка для ввода участником оценок</a>
-      <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
-      <form enctype="multipart/form-data" action = 'members' method="get">
-        <p>Укажите участников (через запятую):</p>
-        <p><textarea name="members"></textarea></p>
-        <input type="hidden" name="master" value="{$master}"/>
-        <input type="submit"/>
-      </form>
-      <p>Зарегистрированы участники:</p>
-      {if (db:open($artel:db-name)/main/board[@master/data()=$master]/members/member[text()])
-      then (
-      <ul>
-        {for $i in db:open($artel:db-name)/main/board[@master/data()=$master]/members/member[text()]
-          return <li>{$i/text()}</li>
-        }
-      </ul>)
-      else (<p><i>пока нет участников...</i></p>)}
+      <div class="container-fluid text-center">    
+        <div class="row content">
+          <div class="col-sm-9 text-left"> 
+              <h1>360+ градусов</h1>
+              <p><i>{$message}</i></p>
+              <p><a href= "{$href_master }">Ссылка для ввода списка участников</a> (сохраните её на всякий случай)</p>
+              <a href= "{$href_common }">Ссылка для ввода участником оценок</a>
+              <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
+              <form enctype="multipart/form-data" action = 'members' method="get">
+                <p>Укажите участников (через запятую):</p>
+                <p><textarea name="members"></textarea></p>
+                <input type="hidden" name="master" value="{$master}"/>
+                <input type="submit"/>
+              </form>
+              <p>Зарегистрированы участники:</p>
+              {if (db:open($artel:db-name)/main/board[@master/data()=$master]/members/member[text()])
+              then (
+              <ul>
+                {for $i in db:open($artel:db-name)/main/board[@master/data()=$master]/members/member[text()]
+                  return <li>{$i/text()}</li>
+                }
+              </ul>)
+              else (<p><i>пока нет участников...</i></p>)}
+          </div>
+        </div>
+      </div>  
     </body>
   </html>
 };
@@ -139,31 +155,38 @@ function artel:input-common($common, $message)
   let $href_result := $artel:url || "artel/result?" || 'common=' || $common
   return
   <html>
+    {$artel:head}
     <body>
-      <h1>360+ градусов</h1>
-      <p><i>{$message}</i></p>
-      <p>Это форма для ввода ваших оценок</p>
-      <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
-      <p>Оцените вклад участника (в %):</p>
-      <form enctype="multipart/form-data" action = "{$artel:url || 'artel/input/values'}" method="get">
-        <table>
-        
-          {for $i in db:open($artel:db-name)/main/board[@common/data()=replace($common, " ", "+")]/members/member[text()]
-            return  <tr><td>{$i/text()}</td><td><input name="{$i/text()}" type = "text"/> %</td></tr>
-          }
-          <tr>
-            <td>Кто вы:</td>
-            <td>
-              <select name="ФИО" style = "width: 200px" >{
-                for $i in db:open($artel:db-name)/main/board[@common/data()=$common]/members/member[text()]/text()
-                return <option  value = "{$i}">{$i}</option>}
-              </select>  
-            </td>
-          </tr>
-        </table>
-        <input type="hidden" name="common" value="{$common}"/>
-        <input type="submit"/>  
-      </form>
+      <div class="container-fluid text-center">    
+        <div class="row content">
+          <div class="col-sm-9 text-left"> 
+            <h1>360+ градусов</h1>
+            <p><i>{$message}</i></p>
+            <p>Это форма для ввода ваших оценок</p>
+            <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
+            <p>Оцените вклад участника (в %):</p>
+            <form enctype="multipart/form-data" action = "{$artel:url || 'artel/input/values'}" method="get">
+              <table>
+              
+                {for $i in db:open($artel:db-name)/main/board[@common/data()=replace($common, " ", "+")]/members/member[text()]
+                  return  <tr><td style="padding: 5px;">{$i/text()}</td><td><input name="{$i/text()}" type = "text"/> %</td></tr>
+                }
+                <tr>
+                  <td style="padding: 5px;">Кто вы:</td>
+                  <td style="padding: 5px;">
+                    <select name="ФИО" style = "width: 200px" >{
+                      for $i in db:open($artel:db-name)/main/board[@common/data()=$common]/members/member[text()]/text()
+                      return <option  value = "{$i}">{$i}</option>}
+                    </select>  
+                  </td>
+                </tr>
+              </table>
+              <input type="hidden" name="common" value="{$common}"/>
+              <input type="submit"/>  
+            </form>
+          </div>
+        </div>
+      </div>  
     </body>
   </html>
 };
@@ -176,8 +199,27 @@ declare
   %output:omit-xml-declaration("no")
 function artel:result($common)
 {
-  let $data := db:open("artel")/main/board[@common=$common]
-  return score:table ($data)
+  <html>
+    <head>{$artel:head}</head>
+    <body>
+      <div class="container-fluid text-center">    
+        <div class="row content">
+          <div class="col-sm-9 text-left"> 
+            <h1>360+ градусов</h1>
+            <p><i>Результаты оценки</i></p>
+            {
+            let $data := db:open("artel")/main/board[@common=$common]
+            return 
+              score:final-table( 
+                score:result($data),
+                ("persons", "self_evaluation", "second", "diff", "penalty", "final_evaluation")
+              )
+            }
+        </div>
+      </div>
+    </div>  
+    </body>
+  </html>
 };
 
 declare
@@ -188,12 +230,19 @@ declare
 function artel:artel()
 {
   <html>
-	<body>
-		<h1>360+ градусов</h1>
-		<p>Для регистрации новой панели нажмите ... </p>
-		<form enctype="multipart/form-data" action = "{$artel:url || 'artel/new-board'}" method="get">
-			<input type="submit" value = "создать"/>
-		</form>
-	</body>
+    {$artel:head}
+  <body>
+    <div class="container-fluid text-center">    
+      <div class="row content">
+        <div class="col-sm-9 text-left"> 
+          <h1>360+ градусов</h1>
+          <p>Для регистрации новой панели нажмите ... </p>
+          <form enctype="multipart/form-data" action = "{$artel:url || 'artel/new-board'}" method="get">
+            <input type="submit" value = "создать"/>
+          </form>
+        </div>
+      </div>
+    </div>  
+  </body>
 </html>
 };

@@ -54,19 +54,19 @@ declare function score:result($board as node())
 declare function score:final-table ($evaluations, $columns)
 {
   <table border="2px">
-    <tr>
+    <tr align="center">
       {
         for $i in $columns
-        return <td>{map:get($score:indicators, $i)}</td>
+        return <td style="padding: 5px;">{map:get($score:indicators, $i)}</td>
       }
     </tr>
     {
       for $i in 1 to count(map:get($evaluations, $columns[1]))
       return 
-          <tr>{
+          <tr align="center">{
             for $a in $columns
             return
-              <td>{map:get($evaluations, $a)[$i]}</td>
+              <td style="padding: 5px;">{map:get($evaluations, $a)[$i]}</td>
          }</tr>
     }
   </table>
