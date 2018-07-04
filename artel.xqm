@@ -212,7 +212,7 @@ function artel:result($common)
             return 
               score:final-table( 
                 score:result($data),
-                ("persons", "self_evaluation", "second", "diff", "penalty", "final_evaluation")
+                ("persons", "self_evaluation", "second", "diff", "penalty_index", "final_evaluation")
               )
             }
         </div>
