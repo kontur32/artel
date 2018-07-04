@@ -7,6 +7,7 @@ declare variable $score:indicators :=
                                         "second": "Внешняя оценка", 
                                         "self_evaluation": "Самооценка", 
                                         "diff": "Пере-(недо-)оценка", 
+                                        "diff_avg" : "Средняя переоценка",
                                         "penalty": "'Штраф' за пере-(недо-)оценку", 
                                         "penalty_index": "Коэфф. 'штрафа'", 
                                         "second_2": "Оценка коррект.", 
@@ -24,6 +25,7 @@ declare function score:result($board as node())
   let $diff := 
     for $i in 1 to count($second)
     return round ($second[$i] - $self_evaluation[$i], 2)
+    
   let $diff_2 :=
     for $i in 1 to count($diff)
     return if ($diff[$i]<0) then (abs($diff[$i])*2) else ($diff[$i])
@@ -44,7 +46,8 @@ declare function score:result($board as node())
       "second" : $second, 
       "self_evaluation" : $self_evaluation, 
       "diff" : $diff, 
-      "penalty" : $diff_2, 
+      "penalty" : $diff_2,
+      "diff_avg" :  sum(for $i in $diff return abs($i)) div count ($diff),
       "penalty_index" : $penalty_index,
       "second_2": $second_2, 
       "final_evaluation": $second_final

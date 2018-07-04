@@ -199,6 +199,10 @@ declare
   %output:omit-xml-declaration("no")
 function artel:result($common)
 {
+  
+  let $data := db:open("artel")/main/board[@common=$common]
+  let $result := score:result($data)
+  return 
   <html>
     <head>{$artel:head}</head>
     <body>
@@ -208,13 +212,12 @@ function artel:result($common)
             <h1>360+ градусов</h1>
             <p><i>Результаты оценки</i></p>
             {
-            let $data := db:open("artel")/main/board[@common=$common]
-            return 
               score:final-table( 
-                score:result($data),
+                $result,
                 ("persons", "self_evaluation", "second", "diff", "penalty_index", "final_evaluation")
               )
             }
+            <p>Срендняя пере-(недо-)оценка {$result?diff_avg}</p>
         </div>
       </div>
     </div>  
