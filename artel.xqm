@@ -71,12 +71,25 @@ function artel:input-members ($members, $master, $url-redirect)
     </members>,
     $master
   ),
-  db:output(web:redirect($artel:url || $url-redirect, map {"master": $master , "message":"Участники опроса успешно зарегистрированы"}))
+  db:output(
+    web:redirect(
+      $artel:url || $url-redirect,
+      map { "master": $master , "message":"Участники опроса успешно зарегистрированы" }
+    )
+  )
 };
 
-declare %updating function artel:create-bord($hash, $url-redirect)
+declare
+  %updating
+function artel:create-bord( $hash, $url-redirect )
 {            
- artel:new-board($hash),  db:output(web:redirect( $artel:url || $url-redirect , map {"master": $hash[1], "common":$hash[2], "message":"Новый опрос успешно создан"}))
+ artel:new-board( $hash ),
+ db:output(
+   web:redirect(
+     $artel:url || $url-redirect,
+     map {"master": $hash[1], "common":$hash[2], "message":"Новый опрос успешно создан"}
+   )
+ )
 };
 
 declare
@@ -222,7 +235,7 @@ function artel:result($common)
                 ("persons", "self_evaluation", "second", "diff", "penalty_index", "final_evaluation")
               )
             }
-            <p>Срендняя пере-(недо-)оценка {$result?diff_avg}</p>
+            <p>Срендняя пере-(недо-)оценка { round( $result?diff_avg, 1 ) }</p>
         </div>
       </div>
     </div>  
