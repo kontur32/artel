@@ -6,9 +6,10 @@ import module namespace request = "http://exquery.org/ns/request";
 
 declare variable $artel:db-name := 'artel';
 declare variable $artel:url :=  db:open('artel')/config/host/text();
+declare variable $artel:title := 'Radical Feedback'; 
 declare variable $artel:head := 
       <head>
-        <title>360+</title>
+        <title>Radical Feedback</title>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
@@ -16,7 +17,9 @@ declare variable $artel:head :=
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       </head>;
 
-declare %updating function artel:new-board($hash) as empty-sequence ()
+declare
+  %updating
+function artel:new-board($hash) as empty-sequence ()
 {
   let $a := 
       <board master="{$hash[1]}" common = "{$hash[2]}" time = "{current-dateTime()}">
@@ -26,7 +29,9 @@ declare %updating function artel:new-board($hash) as empty-sequence ()
        insert node $a into db:open($artel:db-name)/main
 };
 
-declare %updating function artel:members-to-db ($members, $master) as empty-sequence ()
+declare
+  %updating
+function artel:members-to-db ($members, $master) as empty-sequence ()
 {
     replace node db:open($artel:db-name)/main/board[@master/data()=$master]/members with $members,
     delete node db:open($artel:db-name)/main/board[@master/data()=$master]/values,
@@ -116,7 +121,7 @@ function artel:edit-board($master, $message)
       <div class="container-fluid text-center">    
         <div class="row content">
           <div class="col-sm-9 text-left"> 
-              <h1>360+ градусов</h1>
+              <h1>{$artel:title}</h1>
               <p><i>{$message}</i></p>
               <p><a href= "{$href_master }">Ссылка для ввода списка участников</a> (сохраните её на всякий случай)</p>
               <a href= "{$href_common }">Ссылка для ввода участником оценок</a>
@@ -160,7 +165,7 @@ function artel:input-common($common, $message)
       <div class="container-fluid text-center">    
         <div class="row content">
           <div class="col-sm-9 text-left"> 
-            <h1>360+ градусов</h1>
+            <h1>{$artel:title}</h1>
             <p><i>{$message}</i></p>
             <p>Это форма для ввода ваших оценок</p>
             <p>{if (score:is-complete ($common )) then (<a href= "{$href_result }">Ссылка для просмотра результатов</a>) else (<span><u>Ссылка для просмотра результатов пока не доступна</u> (введены оценки {score:complete ($common )} участника(ов))</span>)}</p>
@@ -209,7 +214,7 @@ function artel:result($common)
       <div class="container-fluid text-center">    
         <div class="row content">
           <div class="col-sm-9 text-left"> 
-            <h1>360+ градусов</h1>
+            <h1>{$artel:title}</h1>
             <p><i>Результаты оценки</i></p>
             {
               score:final-table( 
@@ -238,9 +243,9 @@ function artel:artel()
     <div class="container-fluid text-center">    
       <div class="row content">
         <div class="col-sm-9 text-left"> 
-          <h1>360+ градусов</h1>
+          <h1>{$artel:title}</h1>
           <p>Для регистрации новой панели нажмите ... </p>
-          <form enctype="multipart/form-data" action = "{$artel:url || 'artel/new-board'}" method="get">
+          <form enctype="multipart/form-data" action = "{ $artel:url || '/artel/new-board' }" method="get">
             <input type="submit" value = "создать"/>
           </form>
         </div>
