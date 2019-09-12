@@ -24,14 +24,17 @@ function artel:monitor(){
           <div class="col-sm-8 text-left">
           { let $boards := db:open("artel")/main/board
             let $boardsToday := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
+            let $boardsWeek := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 8 ]
             let $completeBoardsTotal :=  $boards[ count ( members/member ) = count( values ) and count ( members/member ) > 0 ]
+            let $completeBoardsWeek := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 8 ]
             let $completeBoardsToday := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
             return
             (
               <h3>Голосований зарегистрировано/завершено/участников</h3>,
               <lu>
                 <li>всего: { count( $boards )}/{ count( $completeBoardsTotal )}/{ count( $completeBoardsTotal/members/member )}</li>
-                <li>сегодня: { count( $boardsToday )}/{ count( $completeBoardsToday )}/{ count( $completeBoardsToday/members/member ) }</li>
+                <li>за неделю: { count( $boardsWeek )}/{ count( $completeBoardsWeek )}/{ count( $completeBoardsWeek/members/member ) }</li>
+                <li>за сутки: { count( $boardsToday )}/{ count( $completeBoardsToday )}/{ count( $completeBoardsToday/members/member ) }</li>
               </lu>
             )
           }
