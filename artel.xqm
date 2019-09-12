@@ -19,7 +19,7 @@ declare variable $artel:head :=
 
 declare
   %updating
-function artel:new-board($hash) as empty-sequence ()
+function artel:new-board( $hash ) as empty-sequence ()
 {
   let $a := 
       <board master="{$hash[1]}" common = "{$hash[2]}" time = "{current-dateTime()}">
