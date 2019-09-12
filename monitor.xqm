@@ -23,9 +23,9 @@ function artel:monitor(){
           <div class="col-sm-2 text-left"/>
           <div class="col-sm-8 text-left">
           { let $boards := db:open("artel")/main/board
-            let $boardsToday := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) )]
+            let $boardsToday := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
             let $completeBoardsTotal :=  $boards[ count ( members/member ) = count( values ) and count ( members/member ) > 0 ]
-            let $completeBoardsToday := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) )]
+            let $completeBoardsToday := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
             return
             (
               <h3>Голосований зарегистрировано/завершено/участников</h3>,
