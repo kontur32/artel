@@ -23,11 +23,11 @@ function artel:monitor(){
           <div class="col-sm-2 text-left"/>
           <div class="col-sm-8 text-left">
           { let $boards := db:open("artel")/main/board
-            let $boardsToday := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
-            let $boardsWeek := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 8 ]
+            let $boardsToday := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) <= 1 ]
+            let $boardsWeek := $boards[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) <= 7 ]
             let $completeBoardsTotal :=  $boards[ count ( members/member ) = count( values ) and count ( members/member ) > 0 ]
-            let $completeBoardsWeek := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 8 ]
-            let $completeBoardsToday := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) < 2 ]
+            let $completeBoardsWeek := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) <= 7 ]
+            let $completeBoardsToday := $completeBoardsTotal[ days-from-duration( current-dateTime() - xs:dateTime( @time ) ) <= 1 ]
             return
             (
               <h3>Голосований зарегистрировано/завершено/участников</h3>,
