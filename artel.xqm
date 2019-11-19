@@ -71,7 +71,7 @@ function artel:input-members ($members, $master, $url-redirect)
     </members>,
     $master
   ),
-  db:output(
+  update:output(
     web:redirect(
       $artel:url || $url-redirect,
       map { "master": $master , "message":"Участники опроса успешно зарегистрированы" }
@@ -84,7 +84,7 @@ declare
 function artel:create-bord( $hash, $url-redirect )
 {            
  artel:new-board( $hash ),
- db:output(
+ update:output(
    web:redirect(
      $artel:url || $url-redirect,
      map {"master": $hash[1], "common":$hash[2], "message":"Новый опрос успешно создан"}
@@ -111,7 +111,7 @@ function artel:input-values ()
     
     let $message := "Товарищ " || request:parameter("ФИО") || ", Ваши оценки успешно записаны"
     return
-      db:output(web:redirect($artel:url || 'artel/input', map { "common":request:parameter("common"), "message":$message}))
+      update:output(web:redirect($artel:url || 'artel/input', map { "common":request:parameter("common"), "message":$message}))
 };
 
 declare
